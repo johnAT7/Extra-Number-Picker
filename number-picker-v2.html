@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Number Picker 00–99</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; margin:0; padding:16px; display:flex; justify-content:center;}
+  .app { width:100%; max-width:500px; }
+  h1 { text-align:center; font-size:1.4rem; margin-bottom:10px; }
+  .selections{background:#020617; border:1px solid #1e293b; border-radius:12px; padding:10px; margin-bottom:12px;}
+  .selected-list{display:flex; flex-wrap:wrap; gap:6px; min-height:26px;}
+  .pill{padding:4px 8px; border-radius:999px; background:#1e293b; font-size:.9rem;}
+  .controls{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
+  .btn{padding:7px 12px; border-radius:999px; border:none; cursor:pointer; font-size:.9rem; background:#1d4ed8; color:white;}
+  .btn.secondary{background:#111827; border:1px solid #374151;}
+  .grid{display:grid; grid-template-columns:repeat(6,1fr); gap:6px;}
+  .num-btn{padding:8px 0; text-align:center; border-radius:10px; background:#020617; border:1px solid #1f2933; cursor:pointer;}
+  .num-btn.selected{background:#38bdf8; color:#0f172a; font-weight:600;}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>00–99 Number Picker</h1>
+
+<div class="selections">
+  <div id="selectedList" class="selected-list"></div>
+</div>
+
+<div class="controls">
+  <button id="randomBtn" class="btn">Random</button>
+  <button id="saveBtn" class="btn secondary">Save</button>
+  <button id="loadBtn" class="btn secondary">Load</button>
+  <button id="clearBtn" class="btn secondary">Clear</button>
+</div>
+
+<div id="numberGrid" class="grid"></div>
+
+<script>
+const grid = document.getElementById("numberGrid");
+const selectedListEl = document.getElementById("selectedList");
+const saveBtn = document.getElementById("saveBtn");
+const loadBtn = document.getElementById("loadBtn");
+const clearBtn = document.getElementById("clearBtn");
+const randomBtn = document.getElementById("randomBtn");
+
+let selected = new Set();
+
+for (let i=0;i<=99;i++){
+  const num = String(i).padStart(2,"0");
+  const btn = document.createElement("div");
+  btn.className="num-btn";
+  btn.textContent=num;
+  btn.dataset.number=num;
+  btn.onclick=()=>toggle(num,btn);
+  grid.appendChild(btn);
+}
+
+function toggle(num,btn){
+  if(selected.has(num)){selected.delete(num); btn.classList.remove("selected");}
+  else {selected.add(num); btn.classList.add("selected");}
+  updateList();
+}
+
+function updateList(){
+  selectedListEl.innerHTML="";
+  [...selected].sort().forEach(n=>{
+    const p=document.createElement("div");
+    p.className="pill";
+    p.textContent=n;
+    selectedListEl.appendChild(p);
+  });
+}
+
+randomBtn.onclick=()=>{
+  const r = String(Math.floor(Math.random()*100)).padStart(2,"0");
+  const btn = grid.querySelector(`[data-number='${r}']`);
+  if(btn) toggle(r,btn);
+};
+
+saveBtn.onclick=()=>{
+  localStorage.setItem("savedNumbers", JSON.stringify([...selected]));
+  alert("Saved!");
+};
+
+loadBtn.onclick=()=>{
+  const data = JSON.parse(localStorage.getItem("savedNumbers")||"[]");
+  selected = new Set(data);
+  document.querySelectorAll(".num-btn").forEach(b=>b.classList.remove("selected"));
+  selected.forEach(n=>{
+    const b=grid.querySelector(`[data-number='${n}']`);
+    if(b) b.classList.add("selected");
+  });
+  updateList();
+};
+
+clearBtn.onclick=()=>{
+  selected.clear();
+  document.querySelectorAll(".num-btn").forEach(b=>b.classList.remove("selected"));
+  updateList();
+};
+</script>
+
+</div>
+</body>
+</html>
